@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -8,6 +10,7 @@ import re
 import httpx
 import random
 from dotenv import load_dotenv
+import asyncio
 
 load_dotenv()
 
@@ -56,33 +59,56 @@ async def translate_to_english(ingredient: str) -> str:
             "content": f"Translate this food ingredient to English. Return ONLY the English word, nothing else: {ingredient}"
         }]
     )
-    return message.content[0].text.strip()
+    result = message.content[0].text.strip()
+    print(f"Çeviri: {ingredient} → {result}")
+    return result
 
-# --- USDA Protein Fonksiyonu ---
 
-async def get_protein_from_usda(ingredient: str) -> float:
+async def get_protein_from_claude(ingredient: str) -> float:
+    message = client.messages.create(
+        model="claude-opus-4-5",
+        max_tokens=50,
+        messages=[{
+            "role": "user",
+            "content": f"100 gram {ingredient} içinde kaç gram protein var? Sadece sayıyı yaz, başka hiçbir şey yazma. Örnek: 25.0"
+        }]
+    )
+    try:
+        return float(message.content[0].text.strip())
+    except:
+        return 0.0
+
+
+async def get_protein_from_usda(ingredient: str) -> Optional[float]:
     async with httpx.AsyncClient(timeout=10.0) as client_http:
         search_url = f"{USDA_BASE_URL}/foods/search"
         params = {
-            "query": ingredient,
-            "api_key": USDA_API_KEY,
-            "pageSize": 1,
-            "dataType": "Foundation,SR Legacy"
-        }
+    "query": ingredient,
+    "api_key": USDA_API_KEY,
+    "pageSize": 3,
+    "dataType": "Foundation,SR Legacy",
+}
         response = await client_http.get(search_url, params=params)
         data = response.json()
 
         if not data.get("foods"):
-            return 0.0
+            return None
 
-        food = data["foods"][0]
-        nutrients = food.get("foodNutrients", [])
+        max_protein = 0.0
+        for food in data["foods"]:
+            nutrients = food.get("foodNutrients", [])
+            for nutrient in nutrients:
+                if nutrient.get("nutrientName") == "Protein":
+                    value = round(nutrient.get("value", 0.0), 1)
+                    if value > max_protein:
+                        max_protein = value
 
-        for nutrient in nutrients:
-            if nutrient.get("nutrientName") == "Protein":
-                return round(nutrient.get("value", 0.0), 1)
+        if max_protein > 0:
+            print(f"USDA protein buldu: {ingredient} → {max_protein}")
+            return max_protein
 
-    return 0.0
+        print(f"USDA protein bulamadı: {ingredient}")
+        return None
 
 
 # --- Endpoints ---
@@ -149,13 +175,16 @@ Yanıtı SADECE şu JSON formatında ver, başka hiçbir şey yazma:
     raw = re.sub(r"```json|```", "", raw).strip()
     ai_data = json.loads(raw)
 
-    proteins = []
-    total = 0.0
-    for ing in request.ingredients:
+    async def process_ingredient(ing: str):
         english_ing = await translate_to_english(ing)
         protein = await get_protein_from_usda(english_ing)
-        proteins.append(ProteinItem(ingredient=ing, protein_g=protein))
-        total += protein
+        if protein is None:
+            protein = await get_protein_from_claude(ing)
+        return ProteinItem(ingredient=ing, protein_g=protein)
+
+    protein_items = await asyncio.gather(*[process_ingredient(ing) for ing in request.ingredients])
+    proteins = list(protein_items)
+    total = round(sum(item.protein_g for item in proteins), 1)
 
     return RecipeResponse(
         recipes=ai_data["recipes"],

@@ -189,6 +189,7 @@ class _HomeScreen2State extends State<HomeScreen2> {
                                     MaterialPageRoute(
                                       builder: (context) => ResultScreen(
                                         recipeResponse: response,
+                                        ingredients: _ingredients,
                                       ),
                                     ),
                                   );
