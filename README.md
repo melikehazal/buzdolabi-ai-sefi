@@ -10,7 +10,7 @@ Buzdolabında ne olduğunu biliyorsun ama ne pişireceğini bilmiyorsun. Buzdola
 
 <p float="left">
   <img src="screenshots/home.png" width="30%" />
-  <img src="screenshots/recipes.png" width="30%" />
+  <img src="screenshots/recipe.png" width="30%" />
   <img src="screenshots/protein.png" width="30%" />
 </p>
 
