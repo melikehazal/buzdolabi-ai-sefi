@@ -9,9 +9,9 @@ Buzdolabında ne olduğunu biliyorsun ama ne pişireceğini bilmiyorsun. Buzdola
 ## 📸 Ekran Görüntüleri
 
 <p float="left">
-  <img src="screenshots/home.png" width="30%" />
-  <img src="screenshots/recipe.png" width="30%" />
-  <img src="screenshots/protein.png" width="30%" />
+  <img src="screenshots/home_screen.png" width="30%" />
+  <img src="screenshots/recipe_screen.png" width="30%" />
+  <img src="screenshots/protein_screen.png" width="30%" />
 </p>
 
 ---
