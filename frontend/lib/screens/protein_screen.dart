@@ -40,7 +40,7 @@ class ProteinScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        "Toplam Protein",
+                        "Toplam Protein Değerleri (100g bazında)",
                         style: TextStyle(
                           fontSize: 14,
                           color: AppTheme.textSecondary,
@@ -62,16 +62,6 @@ class ProteinScreen extends StatelessWidget {
             ),
 
             const SizedBox(height: 24),
-
-            const Text(
-              "Malzeme bazında",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: AppTheme.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 12),
 
             // Tablo
             Container(
@@ -99,7 +89,7 @@ class ProteinScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Protein (g)",
+                          "Malzeme Başına Protein (100g)",
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
